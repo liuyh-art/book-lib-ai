@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.book.mapper.SysUserMapper">
+    <resultMap id="BaseResultMap" type="com.example.book.entity.SysUser">
+        <id column="id" property="id"/><result column="username" property="username"/><result column="password" property="password"/>
+        <result column="real_name" property="realName"/><result column="email" property="email"/><result column="phone" property="phone"/>
+        <result column="role" property="role"/><result column="avatar" property="avatar"/><result column="status" property="status"/>
+        <result column="is_deleted" property="isDeleted"/><result column="create_time" property="createTime"/><result column="update_time" property="updateTime"/>
+    </resultMap>
+    <sql id="SimpleColumns">id, username, real_name, email, phone, role, avatar, status, create_time, update_time</sql>
+    <sql id="BaseColumns">id, username, password, real_name, email, phone, role, avatar, status, is_deleted, create_time, update_time</sql>
+    <sql id="WhereClause">
+        WHERE is_deleted = 0
+        <if test="user != null">
+            <if test="user.username != null and user.username != ''">AND username LIKE CONCAT('%', #{user.username}, '%')</if>
+            <if test="user.realName != null and user.realName != ''">AND real_name LIKE CONCAT('%', #{user.realName}, '%')</if>
+            <if test="user.role != null">AND role = #{user.role}</if>
+            <if test="user.status != null">AND status = #{user.status}</if>
+        </if>
+    </sql>
+    <select id="selectById" resultMap="BaseResultMap">SELECT <include refid="BaseColumns"/> FROM sys_user WHERE id = #{id} AND is_deleted = 0</select>
+    <select id="selectByUsername" resultMap="BaseResultMap">SELECT <include refid="BaseColumns"/> FROM sys_user WHERE username = #{username} AND is_deleted = 0</select>
+    <select id="selectList" resultMap="BaseResultMap">SELECT <include refid="SimpleColumns"/> FROM sys_user <include refid="WhereClause"/> ORDER BY id DESC</select>
+    <select id="countTotal" resultType="long">SELECT COUNT(*) FROM sys_user <include refid="WhereClause"/></select>
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">INSERT INTO sys_user (username, password, real_name, email, phone, role, status) VALUES (#{username}, #{password}, #{realName}, #{email}, #{phone}, COALESCE(#{role}, 2), COALESCE(#{status}, 1))</insert>
+    <update id="updateById">UPDATE sys_user <set><if test="username != null">username = #{username},</if><if test="password != null">password = #{password},</if><if test="realName != null">real_name = #{realName},</if><if test="email != null">email = #{email},</if><if test="phone != null">phone = #{phone},</if><if test="role != null">role = #{role},</if><if test="avatar != null">avatar = #{avatar},</if><if test="status != null">status = #{status},</if></set> WHERE id = #{id} AND is_deleted = 0</update>
+    <update id="deleteById">UPDATE sys_user SET is_deleted = 1 WHERE id = #{id}</update>
+</mapper>

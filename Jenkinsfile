@@ -1,0 +1,54 @@
+pipeline {
+    agent any
+    environment {
+        PROJECT = "book-lib-ai"
+        BACK_IMG = "${PROJECT}-backend:local"
+        FRONT_IMG = "${PROJECT}-frontend:local"
+    }
+    stages {
+        stage('1. 拉取最新代码') {
+            steps {
+                git url: '替换成你的Git仓库地址', branch: 'main'
+            }
+        }
+
+        stage('2. 本地构建后端镜像') {
+            steps {
+                powershell '''
+                cd backend
+                docker build -t ${env.BACK_IMG} .
+                '''
+            }
+        }
+
+        stage('3. 本地构建前端镜像') {
+            steps {
+                powershell '''
+                cd frontend
+                docker build -t ${env.FRONT_IMG} .
+                '''
+            }
+        }
+
+        stage('4. Compose一体化部署') {
+            steps {
+                powershell '''
+                # 停止旧服务
+                docker-compose down
+                # 重新构建并启动
+                docker-compose up -d --build
+                '''
+            }
+        }
+    }
+
+    post {
+        always {
+            echo "流水线执行完毕，前端访问：http://localhost"
+            echo "后端接口地址：http://localhost:8081/book-lib-ai/api/ai/chat"
+        }
+        failure {
+            echo "部署失败，请查看流水线日志排查问题"
+        }
+    }
+}

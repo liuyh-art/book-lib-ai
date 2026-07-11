@@ -1,0 +1,59 @@
+server:
+  port: 8081
+spring:
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://host.docker.internal:3306/book_manager?useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Shanghai&useSSL=false&allowPublicKeyRetrieval=true
+    username: root
+    password: 123456
+    hikari:
+      minimum-idle: 5
+      maximum-pool-size: 20
+      idle-timeout: 300000
+      max-lifetime: 1200000
+      connection-timeout: 30000
+  ai:
+
+    openai:
+      # 你的DeepSeek密钥
+      api-key: sk-xxxxxxxxxxxxxxxxxxxxxxxxxxx
+      # DeepSeek API地址:https://api.deepseek.com/anthropic
+      base-url: https://api.deepseek.com
+      chat:
+        # 模型：deepseek-chat / deepseek-coder
+        options:
+          model: deepseek-v4-flash
+          max-tokens: 1024
+mybatis:
+  mapper-locations: classpath:mapper/*.xml
+  type-aliases-package: com.example.book.entity
+  configuration:
+    map-underscore-to-camel-case: true
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+    cache-enabled: false
+pagehelper:
+  helper-dialect: mysql
+  reasonable: true
+  support-methods-arguments: true
+  params: count=countSql
+jwt:
+  secret: YTkzZjI5YjctZjFiZS00YzVhLWI4NDktNzUzZmVjM2I0ZDg2LWJvb2stbWFuYWdlci1zZWNyZXQta2V5
+  expiration: 86400000
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus,metrics
+  metrics:
+    tags:
+      application: book-manager
+  endpoint:
+    health:
+      show-details: always
+    prometheus:
+      enabled: true
+logging:
+  # 全局日志级别
+  level:
+    # 自己项目包打印debug
+    com.example.book: debug

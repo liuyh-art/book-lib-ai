@@ -1,0 +1,36 @@
+pipeline {
+    agent any
+    environment {
+        BACK_IMG = "book-lib-ai-backend:local"
+    }
+    stages {
+        stage('拉取代码') {
+            steps {
+                 git url: 'git@github.com:liuyh-art/book_backend.git',
+                 branch: 'dev',
+                 credentialsId: 'github-ssh'
+            }
+        }
+        stage('本地构建后端镜像') {
+            steps {
+                powershell '''
+                cd backend
+                docker build -t ${env.BACK_IMG} .
+                '''
+            }
+        }
+        stage('启动后端容器') {
+            steps {
+                powershell '''
+                docker stop book-lib-back || true
+                docker rm book-lib-back || true
+                docker run -d --name book-lib-back -p "8081:8081" ${env.BACK_IMG}
+                '''
+            }
+        }
+    }
+    post {
+        success { echo "后端单独部署完成" }
+        failure { echo "后端部署失败" }
+    }
+}

@@ -1,0 +1,8 @@
+# 任意层级的 target 编译目录
+/book-lib-ai/.git/
+/book-lib-ai/target/
+/book-lib-ai/.idea/
+/frontend/node_modules/
+/frontend/dist/
+/backend/target/
+/.idea/

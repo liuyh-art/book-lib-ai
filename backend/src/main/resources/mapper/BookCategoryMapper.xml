@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.book.mapper.BookCategoryMapper">
+    <resultMap id="BaseResultMap" type="com.example.book.entity.BookCategory">
+        <id column="id" property="id"/><result column="category_name" property="categoryName"/><result column="sort" property="sort"/>
+        <result column="status" property="status"/><result column="is_deleted" property="isDeleted"/><result column="create_time" property="createTime"/><result column="update_time" property="updateTime"/>
+    </resultMap>
+    <sql id="BaseColumns">id, category_name, sort, status, is_deleted, create_time, update_time</sql>
+    <sql id="WhereClause">
+        WHERE is_deleted = 0
+        <if test="category != null">
+            <if test="category.categoryName != null and category.categoryName != ''">AND category_name LIKE CONCAT('%', #{category.categoryName}, '%')</if>
+            <if test="category.status != null">AND status = #{category.status}</if>
+        </if>
+    </sql>
+    <select id="selectById" resultMap="BaseResultMap">SELECT <include refid="BaseColumns"/> FROM book_category WHERE id = #{id} AND is_deleted = 0</select>
+    <select id="selectAll" resultMap="BaseResultMap">SELECT <include refid="BaseColumns"/> FROM book_category WHERE is_deleted = 0 <if test="status != null">AND status = #{status}</if> ORDER BY sort ASC, id DESC</select>
+    <select id="selectList" resultMap="BaseResultMap">SELECT <include refid="BaseColumns"/> FROM book_category <include refid="WhereClause"/> ORDER BY sort ASC, id DESC</select>
+    <select id="countTotal" resultType="long">SELECT COUNT(*) FROM book_category <include refid="WhereClause"/></select>
+    <select id="countBooksByCategory" resultType="long">SELECT COUNT(*) FROM book WHERE category_id = #{categoryId} AND is_deleted = 0</select>
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">INSERT INTO book_category (category_name, sort, status) VALUES (#{categoryName}, COALESCE(#{sort}, 0), COALESCE(#{status}, 1))</insert>
+    <update id="updateById">UPDATE book_category <set><if test="categoryName != null">category_name = #{categoryName},</if><if test="sort != null">sort = #{sort},</if><if test="status != null">status = #{status},</if></set> WHERE id = #{id} AND is_deleted = 0</update>
+    <update id="deleteById">UPDATE book_category SET is_deleted = 1 WHERE id = #{id}</update>
+</mapper>

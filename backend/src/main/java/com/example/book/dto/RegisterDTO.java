@@ -1,0 +1,10 @@
+package com.example.book.dto;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
+import lombok.Data;
+@Data
+public class RegisterDTO {
+    @NotBlank @Size(min=3,max=50) private String username;
+    @NotBlank @Size(min=6,max=50) private String password;
+    private String realName; private String email; private String phone;
+}

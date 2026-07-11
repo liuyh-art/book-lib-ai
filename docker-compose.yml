@@ -1,0 +1,61 @@
+# ============================================================
+# Docker Compose — 一体化部署
+# 一键启动 MySQL + 后端 + 前端
+#
+# 使用方式:
+#   docker compose up -d                              # 启动全部服务
+#   docker compose up -d --build                      # 重新构建镜像后启动
+#   docker compose down -v                            # 停止并删除数据卷
+#
+# 环境变量（创建 .env 文件或直接在 shell 中 export）:
+#   DEEPSEEK_API_KEY=sk-your-key-here                 # DeepSeek API 密钥
+# ============================================================
+name: book-manager
+
+services:
+  # ---- Spring Boot 后端 ----
+  backend:
+    build:
+      context: ./backend
+    container_name: book-backend
+    restart: always
+      # 新增这一行，解决本地数据库连接报错
+    extra_hosts:
+        - "host.docker.internal:host-gateway"
+    environment:
+      # AI 密钥（Spring Boot 会自动将全大写 + 下划线映射到点号属性）
+      SPRING_AI_OPENAI_API_KEY: sk-xxxxxxxxxxxxxxxxxxxx
+    ports:
+      - "8081:8081"
+    healthcheck:
+      test: ["CMD", "curl", "-s", "-f", "http://localhost:8081/actuator/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 60s
+    networks:
+      - book-network
+
+  # ---- Nginx 前端 ----
+  frontend:
+    build:
+      context: ./frontend
+    container_name: book-frontend
+    restart: always
+    ports:
+      - "80:80"
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:80/"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+    networks:
+      - book-network
+
+volumes:
+  mysql_data:
+    driver: local
+
+networks:
+  book-network:
+    driver: bridge

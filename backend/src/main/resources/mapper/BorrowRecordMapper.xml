@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.book.mapper.BorrowRecordMapper">
+    <resultMap id="BaseResultMap" type="com.example.book.entity.BorrowRecord">
+        <id column="id" property="id"/><result column="user_id" property="userId"/><result column="book_id" property="bookId"/>
+        <result column="borrow_time" property="borrowTime"/><result column="return_time" property="returnTime"/>
+        <result column="status" property="status"/><result column="is_deleted" property="isDeleted"/>
+        <result column="create_time" property="createTime"/><result column="update_time" property="updateTime"/>
+    </resultMap>
+    <sql id="BaseColumns">id, user_id, book_id, borrow_time, return_time, status, is_deleted, create_time, update_time</sql>
+    <sql id="WhereClause">
+        WHERE br.is_deleted = 0
+        <if test="userId != null">AND br.user_id = #{userId}</if>
+        <if test="bookId != null">AND br.book_id = #{bookId}</if>
+        <if test="status != null">AND br.status = #{status}</if>
+    </sql>
+    <select id="selectById" resultMap="BaseResultMap">SELECT
+        <include refid="BaseColumns"/>
+        FROM borrow_record WHERE id = #{id} AND is_deleted = 0
+    </select>
+    <select id="selectPage" resultMap="BaseResultMap">SELECT <include refid="BaseColumns"/> FROM borrow_record br <include refid="WhereClause"/> ORDER BY br.id DESC</select>
+    <select id="countTotal" resultType="long">SELECT COUNT(*) FROM borrow_record br <include refid="WhereClause"/></select>
+    <select id="countBorrowingByUser" resultType="long">SELECT COUNT(*) FROM borrow_record WHERE user_id = #{userId} AND status = 0 AND is_deleted = 0</select>
+    <select id="selectBorrowing" resultMap="BaseResultMap">SELECT <include refid="BaseColumns"/> FROM borrow_record WHERE user_id = #{userId} AND book_id = #{bookId} AND status = 0 AND is_deleted = 0 LIMIT 1</select>
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">INSERT INTO borrow_record (user_id, book_id, borrow_time, status) VALUES (#{userId}, #{bookId}, NOW(), 0)</insert>
+    <update id="updateById">UPDATE borrow_record <set><if test="returnTime != null">return_time = #{returnTime},</if><if test="status != null">status = #{status},</if></set> WHERE id = #{id} AND is_deleted = 0</update>
+    <update id="deleteById">UPDATE borrow_record SET is_deleted = 1 WHERE id = #{id}</update>
+
+    <select id="countTotalBorrowed" resultType="long">SELECT COUNT(*) FROM borrow_record WHERE is_deleted = 0 AND status = 0</select>
+    <select id="countBorrowBetween" resultType="long">SELECT COUNT(*) FROM borrow_record WHERE is_deleted = 0 AND borrow_time BETWEEN #{start} AND #{end}</select>
+    <select id="countReturnBetween" resultType="long">SELECT COUNT(*) FROM borrow_record WHERE is_deleted = 0 AND return_time BETWEEN #{start} AND #{end}</select>
+    <select id="countByDateRange" resultType="java.util.Map">SELECT DATE(borrow_time) as date, COUNT(*) as count FROM borrow_record WHERE is_deleted = 0 AND borrow_time BETWEEN #{start} AND #{end} GROUP BY DATE(borrow_time) ORDER BY date</select>
+    <select id="countBorrowingByUserId" resultType="java.lang.String" parameterType="java.lang.Long">
+        SELECT book_name
+        FROM book b
+        WHERE EXISTS (
+            SELECT 1
+            FROM borrow_record br
+            WHERE br.book_id = b.id
+              AND br.user_id = #{userId}
+              AND br.`status` = 0
+        )
+    </select>
+    <select id="selectOverdueBook" resultType="java.lang.String" parameterType="java.lang.Long">
+        SELECT book_name
+        FROM book b
+        WHERE EXISTS (
+            SELECT 1
+            FROM borrow_record br
+            WHERE br.book_id = b.id
+              AND br.user_id = #{userId}
+              AND br.`status` = 0
+              <![CDATA[ AND br.borrow_time <= NOW() - INTERVAL 30 DAY ]]>
+        )
+    </select>
+    <select id="selectCanBorrowBook" resultType="java.lang.String" parameterType="java.lang.String">
+        SELECT book_name
+        FROM book b
+        WHERE EXISTS (
+            SELECT 1
+            FROM book_category bc
+            WHERE bc.id = b.category_id
+              AND bc.category_name = #{category}
+              AND bc.`status` = 1
+              AND b.`status`=1
+              AND b.stock>0
+        )
+    </select>
+    <select id="selectRemainBorrowNum" resultType="java.lang.Integer" parameterType="java.lang.Long">
+        SELECT COUNT(1) FROM borrow_record br WHERE br.user_id = #{userId}
+                                                AND br.`status` = 0
+    </select>
+</mapper>

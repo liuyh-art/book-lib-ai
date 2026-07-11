@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.book.mapper.BookMapper">
+    <resultMap id="BaseResultMap" type="com.example.book.entity.Book">
+        <id column="id" property="id"/><result column="book_name" property="bookName"/><result column="author" property="author"/>
+        <result column="publisher" property="publisher"/><result column="isbn" property="isbn"/><result column="category_id" property="categoryId"/>
+        <result column="stock" property="stock"/><result column="total_stock" property="totalStock"/><result column="description" property="description"/>
+        <result column="cover" property="cover"/><result column="status" property="status"/><result column="is_deleted" property="isDeleted"/>
+        <result column="create_time" property="createTime"/><result column="update_time" property="updateTime"/>
+    </resultMap>
+    <sql id="BaseColumns">id, book_name, author, publisher, isbn, category_id, stock, total_stock, description, cover, status, is_deleted, create_time, update_time</sql>
+    <sql id="WhereClause">
+        WHERE b.is_deleted = 0
+        <if test="bookName != null and bookName != ''">AND b.book_name LIKE CONCAT('%', #{bookName}, '%')</if>
+        <if test="author != null and author != ''">AND b.author LIKE CONCAT('%', #{author}, '%')</if>
+        <if test="categoryId != null">AND b.category_id = #{categoryId}</if>
+        <if test="status != null">AND b.status = #{status}</if>
+    </sql>
+    <select id="selectById" resultMap="BaseResultMap">SELECT <include refid="BaseColumns"/> FROM book WHERE id = #{id} AND is_deleted = 0</select>
+    <select id="selectByIsbn" resultMap="BaseResultMap">SELECT <include refid="BaseColumns"/> FROM book WHERE isbn = #{isbn} AND is_deleted = 0</select>
+    <select id="selectPage" resultMap="BaseResultMap">SELECT b.id, b.book_name, b.author, b.publisher, b.isbn, b.category_id, b.stock, b.total_stock, b.description, b.cover, b.status, b.is_deleted, b.create_time, b.update_time FROM book b <include refid="WhereClause"/> ORDER BY b.id DESC</select>
+    <select id="countTotal" resultType="long">SELECT COUNT(*) FROM book b <include refid="WhereClause"/></select>
+    <select id="selectAll" resultMap="BaseResultMap">SELECT <include refid="BaseColumns"/> FROM book WHERE is_deleted = 0 AND status = 1 ORDER BY id DESC</select>
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">INSERT INTO book (book_name, author, publisher, isbn, category_id, stock, total_stock, description, cover, status) VALUES (#{bookName}, #{author}, #{publisher}, #{isbn}, #{categoryId}, #{stock}, #{totalStock}, #{description}, #{cover}, COALESCE(#{status}, 1))</insert>
+    <update id="updateById">UPDATE book <set><if test="bookName != null">book_name = #{bookName},</if><if test="author != null">author = #{author},</if><if test="publisher != null">publisher = #{publisher},</if><if test="isbn != null">isbn = #{isbn},</if><if test="categoryId != null">category_id = #{categoryId},</if><if test="stock != null">stock = #{stock},</if><if test="totalStock != null">total_stock = #{totalStock},</if><if test="description != null">description = #{description},</if><if test="cover != null">cover = #{cover},</if><if test="status != null">status = #{status},</if></set> WHERE id = #{id} AND is_deleted = 0</update>
+    <update id="deleteById">UPDATE book SET is_deleted = 1 WHERE id = #{id}</update>
+    <update id="decrementStock">UPDATE book SET stock = stock - 1 WHERE id = #{id} AND stock > 0</update>
+    <update id="incrementStock">UPDATE book SET stock = stock + 1 WHERE id = #{id}</update>
+</mapper>

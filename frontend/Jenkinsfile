@@ -1,0 +1,34 @@
+pipeline {
+    agent any
+    environment {
+        FRONT_IMG = "book-lib-ai-frontend:local"
+    }
+    stages {
+        stage('拉取代码') {
+            steps {
+                git url: '你的git仓库地址', branch: 'main'
+            }
+        }
+        stage('本地构建前端镜像') {
+            steps {
+                powershell '''
+                cd frontend
+                docker build -t ${env.FRONT_IMG} .
+                '''
+            }
+        }
+        stage('启动前端容器') {
+            steps {
+                powershell '''
+                docker stop book-lib-front || true
+                docker rm book-lib-front || true
+                docker run -d --name book-lib-front -p "80:80" ${env.FRONT_IMG}
+                '''
+            }
+        }
+    }
+    post {
+        success { echo "前端单独部署完成" }
+        failure { echo "前端部署失败" }
+    }
+}
