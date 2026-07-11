@@ -6,7 +6,9 @@ pipeline {
     stages {
         stage('拉取代码') {
             steps {
-                git url: '你的git仓库地址', branch: 'main'
+                git url: 'https://github.com/liuyh-art/book-lib-ai.git',
+                branch: 'main',
+                credentialsId: 'github-ssh'
             }
         }
         stage('本地构建前端镜像') {
@@ -20,9 +22,9 @@ pipeline {
         stage('启动前端容器') {
             steps {
                 powershell '''
-                docker stop book-lib-front || true
-                docker rm book-lib-front || true
-                docker run -d --name book-lib-front -p "80:80" ${env.FRONT_IMG}
+                docker stop frontend || true
+                docker rm frontend || true
+                docker run -d -p "80:80" --network book_net --name frontend ${env.FRONT_IMG}
                 '''
             }
         }

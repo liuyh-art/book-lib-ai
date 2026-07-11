@@ -6,8 +6,8 @@ pipeline {
     stages {
         stage('拉取代码') {
             steps {
-                 git url: 'git@github.com:liuyh-art/book_backend.git',
-                 branch: 'dev',
+                 git url: 'https://github.com/liuyh-art/book-lib-ai.git',
+                 branch: 'main',
                  credentialsId: 'github-ssh'
             }
         }
@@ -22,9 +22,10 @@ pipeline {
         stage('启动后端容器') {
             steps {
                 powershell '''
-                docker stop book-lib-back || true
-                docker rm book-lib-back || true
-                docker run -d --name book-lib-back -p "8081:8081" ${env.BACK_IMG}
+                docker network inspect book_net > $null 2>&1 || docker network create book_net
+                docker stop backend || true
+                docker rm backend || true
+                docker run -d -p "8081:8081" --network book_net --add-host=host.docker.internal:host-gateway --name backend ${env.BACK_IMG}
                 '''
             }
         }

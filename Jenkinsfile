@@ -8,7 +8,9 @@ pipeline {
     stages {
         stage('1. 拉取最新代码') {
             steps {
-                git url: '替换成你的Git仓库地址', branch: 'main'
+                git url: 'https://github.com/liuyh-art/book-lib-ai.git',
+                branch: 'main',
+                credentialsId: 'github-ssh'
             }
         }
 
@@ -45,7 +47,7 @@ pipeline {
     post {
         always {
             echo "流水线执行完毕，前端访问：http://localhost"
-            echo "后端接口地址：http://localhost:8081/book-lib-ai/api/ai/chat"
+            echo "后端接口地址：http://localhost:8081/api/ai/chat"
         }
         failure {
             echo "部署失败，请查看流水线日志排查问题"
