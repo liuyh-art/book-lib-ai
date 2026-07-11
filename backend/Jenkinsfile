@@ -13,19 +13,19 @@ pipeline {
         }
         stage('本地构建后端镜像') {
             steps {
-                powershell '''
+                sh '''
                 cd backend
-                docker build -t ${env.BACK_IMG} .
+                docker build -t $BACK_IMG .
                 '''
             }
         }
         stage('启动后端容器') {
             steps {
-                powershell '''
+                sh '''
                 docker network inspect book_net > $null 2>&1 || docker network create book_net
                 docker stop backend || true
                 docker rm backend || true
-                docker run -d -p "8081:8081" --network book_net --add-host=host.docker.internal:host-gateway --name backend ${env.BACK_IMG}
+                docker run -d -p "8081:8081" --network book_net --add-host=host.docker.internal:host-gateway --name backend $BACK_IMG
                 '''
             }
         }

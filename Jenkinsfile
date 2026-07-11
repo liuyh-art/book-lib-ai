@@ -16,25 +16,25 @@ pipeline {
 
         stage('2. 本地构建后端镜像') {
             steps {
-                powershell '''
+                sh '''
                 cd backend
-                docker build -t ${env.BACK_IMG} .
+                docker build -t $BACK_IMG .
                 '''
             }
         }
 
         stage('3. 本地构建前端镜像') {
             steps {
-                powershell '''
+                sh '''
                 cd frontend
-                docker build -t ${env.FRONT_IMG} .
+                docker build -t $FRONT_IMG .
                 '''
             }
         }
 
         stage('4. Compose一体化部署') {
             steps {
-                powershell '''
+                sh '''
                 # 停止旧服务
                 docker-compose down
                 # 重新构建并启动

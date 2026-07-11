@@ -13,18 +13,18 @@ pipeline {
         }
         stage('本地构建前端镜像') {
             steps {
-                powershell '''
+                sh '''
                 cd frontend
-                docker build -t ${env.FRONT_IMG} .
+                docker build -t $FRONT_IMG .
                 '''
             }
         }
         stage('启动前端容器') {
             steps {
-                powershell '''
+                sh '''
                 docker stop frontend || true
                 docker rm frontend || true
-                docker run -d -p "80:80" --network book_net --name frontend ${env.FRONT_IMG}
+                docker run -d -p "80:80" --network book_net --name frontend $FRONT_IMG
                 '''
             }
         }
